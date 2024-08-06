@@ -1,0 +1,206 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+// Class to store course details
+class Course {
+    String code;
+    String title;
+    String description;
+    int capacity;
+    int enrolled;
+
+    Course(String code, String title, String description, int capacity) {
+        this.code = code;
+        this.title = title;
+        this.description = description;
+        this.capacity = capacity;
+        this.enrolled = 0;
+    }
+
+    boolean hasAvailableSlots() {
+        return enrolled < capacity;
+    }
+
+    void enroll() {
+        if (hasAvailableSlots()) {
+            enrolled++;
+        } else {
+            System.out.println("No available slots for " + title);
+        }
+    }
+
+    void drop() {
+        if (enrolled > 0) {
+            enrolled--;
+        } else {
+            System.out.println("No students enrolled in " + title);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Code: " + code + ", Title: " + title + ", Description: " + description +
+               ", Capacity: " + capacity + ", Enrolled: " + enrolled;
+    }
+}
+
+// Class to store student details
+class Student {
+    String id;
+    String name;
+    ArrayList<String> registeredCourses;
+
+    Student(String id, String name) {
+        this.id = id;
+        this.name = name;
+        this.registeredCourses = new ArrayList<>();
+    }
+
+    void registerCourse(String courseCode) {
+        registeredCourses.add(courseCode);
+    }
+
+    void dropCourse(String courseCode) {
+        registeredCourses.remove(courseCode);
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id + ", Name: " + name + ", Registered Courses: " + registeredCourses;
+    }
+}
+
+// Class to manage courses
+class CourseManager {
+    private Map<String, Course> courses;
+
+    CourseManager() {
+        this.courses = new HashMap<>();
+    }
+
+    void addCourse(Course course) {
+        courses.put(course.code, course);
+    }
+
+    void displayCourses() {
+        for (Course course : courses.values()) {
+            System.out.println(course);
+        }
+    }
+
+    Course getCourse(String code) {
+        return courses.get(code);
+    }
+}
+
+// Class to manage students
+class StudentManager {
+    private Map<String, Student> students;
+    private CourseManager courseManager;
+
+    StudentManager(CourseManager courseManager) {
+        this.students = new HashMap<>();
+        this.courseManager = courseManager;
+    }
+
+    void addStudent(Student student) {
+        students.put(student.id, student);
+    }
+
+    void registerStudentForCourse(String studentId, String courseCode) {
+        Student student = students.get(studentId);
+        Course course = courseManager.getCourse(courseCode);
+
+        if (student != null && course != null && course.hasAvailableSlots()) {
+            student.registerCourse(courseCode);
+            course.enroll();
+            System.out.println("Student " + studentId + " registered for course " + courseCode);
+        } else {
+            System.out.println("Registration failed.");
+        }
+    }
+
+    void dropStudentFromCourse(String studentId, String courseCode) {
+        Student student = students.get(studentId);
+        Course course = courseManager.getCourse(courseCode);
+
+        if (student != null && course != null) {
+            student.dropCourse(courseCode);
+            course.drop();
+            System.out.println("Student " + studentId + " dropped from course " + courseCode);
+        } else {
+            System.out.println("Drop failed.");
+        }
+    }
+
+    void displayStudent(String studentId) {
+        Student student = students.get(studentId);
+        if (student != null) {
+            System.out.println(student);
+        } else {
+            System.out.println("Student not found.");
+        }
+    }
+}
+
+// Main class
+public class CourseRegistrationSystem {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        CourseManager courseManager = new CourseManager();
+        StudentManager studentManager = new StudentManager(courseManager);
+
+        // Add some courses
+        courseManager.addCourse(new Course("CS101", "Introduction to Computer Science", "Basic course on computer science.", 3));
+        courseManager.addCourse(new Course("MATH101", "Calculus I", "Introduction to calculus.", 2));
+
+        // Add some students
+        studentManager.addStudent(new Student("S001", "Alice Johnson"));
+        studentManager.addStudent(new Student("S002", "Bob Smith"));
+
+        while (true) {
+            System.out.println("\n1. Display Courses");
+            System.out.println("2. Register for Course");
+            System.out.println("3. Drop Course");
+            System.out.println("4. Display Student");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            int option = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (option) {
+                case 1:
+                    courseManager.displayCourses();
+                    break;
+                case 2:
+                    System.out.print("Enter student ID: ");
+                    String registerStudentId = scanner.nextLine();
+                    System.out.print("Enter course code: ");
+                    String registerCourseCode = scanner.nextLine();
+                    studentManager.registerStudentForCourse(registerStudentId, registerCourseCode);
+                    break;
+                case 3:
+                    System.out.print("Enter student ID: ");
+                    String dropStudentId = scanner.nextLine();
+                    System.out.print("Enter course code: ");
+                    String dropCourseCode = scanner.nextLine();
+                    studentManager.dropStudentFromCourse(dropStudentId, dropCourseCode);
+                    break;
+                case 4:
+                    System.out.print("Enter student ID: ");
+                    String displayStudentId = scanner.nextLine();
+                    studentManager.displayStudent(displayStudentId);
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+}
